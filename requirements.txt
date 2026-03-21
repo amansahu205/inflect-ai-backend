@@ -1,0 +1,16 @@
+
+---
+
+## FILE 8 — `requirements.txt`
+```
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+groq==0.9.0
+yfinance==1.2.0
+pandas==2.3.2
+httpx==0.27.0
+python-dotenv==1.0.1
+finnhub-python==2.4.20
+pinecone-client==6.0.0
+python-multipart==0.0.9
+pydantic==2.7.0

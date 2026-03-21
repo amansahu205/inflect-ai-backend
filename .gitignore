@@ -1,0 +1,57 @@
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build and temp
+build/
+tmp/
+temp/
+*.log
+
+# Local data artifacts (do not version)
+data/
+backend/data/
+
+# DB and checkpoints
+*.db
+*.sqlite
+*.sqlite3
+
+# Local model files
+models/
+backend/models/
+frontend/.cache/
