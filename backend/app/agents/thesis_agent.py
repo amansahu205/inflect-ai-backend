@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
+import re
 
 import yfinance as yf
 from groq import Groq
@@ -16,11 +18,41 @@ from app.services.snowflake_rag_service import (
     get_news,
 )
 
+logger = logging.getLogger(__name__)
+
+_groq_client: Groq | None = None
+
+
+def _get_groq_client() -> Groq:
+    global _groq_client
+    if _groq_client is None:
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            raise ValueError("GROQ_API_KEY is not set")
+        _groq_client = Groq(api_key=api_key)
+    return _groq_client
+
+
+def _safe_parse_json(raw: str) -> dict:
+    cleaned = re.sub(r"```(?:json)?\s*", "", raw, flags=re.IGNORECASE)
+    cleaned = cleaned.replace("```", "").strip()
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        pass
+    match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group())
+        except json.JSONDecodeError:
+            pass
+    raise ValueError(f"Could not parse thesis JSON: {raw[:300]!r}")
+
 
 def _score_sentiment_groq(headlines: list[str]) -> float:
     try:
-        client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         headlines_text = "\n".join(headlines[:5])
+        client = _get_groq_client()
         resp = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
@@ -29,7 +61,7 @@ def _score_sentiment_groq(headlines: list[str]) -> float:
                     "content": (
                         "Score the overall sentiment of these financial headlines "
                         "for a stock from -1.0 (very negative) to +1.0 (very positive). "
-                        "Return ONLY a number.\n\n"
+                        "Return ONLY a single decimal number, nothing else.\n\n"
                         f"Headlines:\n{headlines_text}"
                     ),
                 }
@@ -37,8 +69,11 @@ def _score_sentiment_groq(headlines: list[str]) -> float:
             max_tokens=10,
             temperature=0,
         )
-        return float(resp.choices[0].message.content.strip())
-    except Exception:
+        raw = (resp.choices[0].message.content or "").strip()
+        m = re.search(r"-?\d+\.?\d*", raw)
+        return float(m.group()) if m else float(raw)
+    except Exception as e:
+        logger.warning("_score_sentiment_groq failed: %s", e)
         return 0.0
 
 
@@ -55,12 +90,15 @@ def _snowflake_context_hints(ticker: str) -> str:
             for r in news_rows
             if r.get("sentiment") is not None
         ]
-        avg_score = sum(scores) / len(scores) if scores else 0
-        if avg_score == 0:
+        avg_score = sum(scores) / len(scores) if scores else 0.0
+        if avg_score == 0.0:
             hl = headlines or [str(r.get("headline", "")) for r in news_rows]
             hl = [h for h in hl if h]
             if hl:
-                avg_score = _score_sentiment_groq(hl)
+                try:
+                    avg_score = _score_sentiment_groq(hl)
+                except ValueError:
+                    pass
         parts.append(
             f"news sentiment (Snowflake): "
             f"avg_score={avg_score:.2f}, "
@@ -136,10 +174,30 @@ def compute_verdict(thesis: dict) -> str:
     return "WATCH"
 
 
+def _neutral_thesis(
+    ticker: str, rsi: float, reason: str, error: str | None = None
+) -> dict:
+    base = {
+        "ticker": ticker,
+        "fundamental": {"signal": "NEUTRAL", "reason": reason, "citation": "N/A"},
+        "technical": {"signal": "NEUTRAL", "reason": f"RSI: {rsi}", "rsi": rsi},
+        "sentiment": {
+            "signal": "NEUTRAL",
+            "reason": "Unable to analyze",
+            "score": 0.0,
+        },
+        "verdict": "WATCH",
+        "confidence": "LOW",
+        "educational_note": EDU,
+    }
+    if error:
+        base["error"] = error
+    return base
+
+
 def calculate_rsi(ticker: str) -> float:
     try:
-        from app.services.snowflake_rag_service \
-            import get_snowflake_connection
+        from app.services.snowflake_rag_service import get_snowflake_connection
 
         conn = get_snowflake_connection()
         try:
@@ -147,40 +205,42 @@ def calculate_rsi(ticker: str) -> float:
             try:
                 cursor.execute(
                     """
-                    WITH daily AS (
-                        SELECT CLOSE_PRICE,
-                        LAG(CLOSE_PRICE) OVER
-                            (ORDER BY TRADE_DATE) AS prev
+                    WITH recent AS (
+                        SELECT CLOSE_PRICE, TRADE_DATE
                         FROM PRICES
                         WHERE TICKER = %s
                         ORDER BY TRADE_DATE DESC
                         LIMIT 15
                     ),
-                    changes AS (
+                    daily AS (
                         SELECT
-                            CLOSE_PRICE - prev AS chg
+                            CLOSE_PRICE,
+                            LAG(CLOSE_PRICE) OVER (ORDER BY TRADE_DATE ASC) AS prev
+                        FROM recent
+                    ),
+                    changes AS (
+                        SELECT CLOSE_PRICE - prev AS chg
                         FROM daily
                         WHERE prev IS NOT NULL
                     )
                     SELECT
-                        AVG(CASE WHEN chg > 0
-                            THEN chg ELSE 0 END) AS avg_gain,
-                        AVG(CASE WHEN chg < 0
-                            THEN ABS(chg) ELSE 0 END) AS avg_loss
+                        AVG(CASE WHEN chg > 0 THEN chg ELSE 0 END) AS avg_gain,
+                        AVG(CASE WHEN chg < 0 THEN ABS(chg) ELSE 0 END) AS avg_loss
                     FROM changes
                     """,
                     (ticker.upper(),),
                 )
                 row = cursor.fetchone()
-                if row and row[1] and row[1] > 0:
-                    rs = row[0] / row[1]
+                if row and row[1] and float(row[1]) > 0:
+                    rs = float(row[0]) / float(row[1])
                     return round(100 - (100 / (1 + rs)), 1)
                 return 50.0
             finally:
                 cursor.close()
         finally:
             conn.close()
-    except Exception:
+    except Exception as e:
+        logger.warning("calculate_rsi(%s) failed: %s", ticker, e)
         return 50.0
 
 
@@ -197,35 +257,15 @@ def _generate_thesis_sync(ticker: str) -> dict:
             f"Revenue Growth: {revenue_growth}, RSI(14 proxy): {rsi}"
         )
         context += _snowflake_context_hints(ticker)
-    except Exception:
-        context = "Limited data available" + _snowflake_context_hints(ticker)
+    except Exception as e:
+        logger.warning("yfinance lookup failed for %s: %s", ticker, e)
+        context = "Limited market data available" + _snowflake_context_hints(ticker)
 
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key:
-        return {
-            "ticker": ticker,
-            "fundamental": {
-                "signal": "NEUTRAL",
-                "reason": "GROQ_API_KEY not configured",
-                "citation": "N/A",
-            },
-            "technical": {
-                "signal": "NEUTRAL",
-                "reason": f"RSI estimate: {rsi}",
-                "rsi": rsi,
-            },
-            "sentiment": {
-                "signal": "NEUTRAL",
-                "reason": "Unable to analyze without LLM",
-                "score": 0.0,
-            },
-            "verdict": "WATCH",
-            "confidence": "LOW",
-            "educational_note": EDU,
-        }
+    if not os.getenv("GROQ_API_KEY"):
+        return _neutral_thesis(ticker, rsi, "GROQ_API_KEY not configured")
 
-    client = Groq(api_key=api_key)
     try:
+        client = _get_groq_client()
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
@@ -238,37 +278,16 @@ def _generate_thesis_sync(ticker: str) -> dict:
             temperature=0.2,
             max_tokens=600,
         )
-        content = response.choices[0].message.content or "{}"
-        content = content.replace("```json", "").replace("```", "").strip()
-        thesis = json.loads(content)
+        raw_content = response.choices[0].message.content or "{}"
+        thesis = _safe_parse_json(raw_content)
         thesis["ticker"] = ticker
         thesis.setdefault("technical", {})["rsi"] = rsi
         thesis["verdict"] = compute_verdict(thesis)
         thesis["educational_note"] = EDU
         return thesis
     except Exception as e:
-        return {
-            "ticker": ticker,
-            "fundamental": {
-                "signal": "NEUTRAL",
-                "reason": "Insufficient data",
-                "citation": "N/A",
-            },
-            "technical": {
-                "signal": "NEUTRAL",
-                "reason": f"RSI: {rsi}",
-                "rsi": rsi,
-            },
-            "sentiment": {
-                "signal": "NEUTRAL",
-                "reason": "Unable to analyze",
-                "score": 0.0,
-            },
-            "verdict": "WATCH",
-            "confidence": "LOW",
-            "educational_note": EDU,
-            "error": str(e),
-        }
+        logger.error("ThesisAgent LLM failed for %s: %s", ticker, e)
+        return _neutral_thesis(ticker, rsi, "Insufficient data", error=str(e))
 
 
 class ThesisAgent(BaseAgent):

@@ -4,10 +4,16 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Local backup files (may contain secrets)
+*.pull-backup
+
 # Environment and secrets
 .env
 .env.*
 !.env.example
+!frontend/.env.example
+!frontend/.env.development
+!frontend/.env.e2e
 
 # Python
 __pycache__/

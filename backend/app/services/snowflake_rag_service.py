@@ -237,3 +237,54 @@ def search_sec_chunks(
         return []
     finally:
         conn.close()
+
+
+def get_latest_closes_for_tickers(tickers: list[str]) -> dict[str, tuple[float, float]]:
+    """
+    Latest CLOSE_PRICE and prior close per ticker from PRICES (batch).
+    Returns { "AAPL": (last_close, prev_close) }; prev may equal last if only one row.
+    """
+    if not tickers or not snowflake_configured():
+        return {}
+
+    uppers = [t.strip().upper() for t in tickers if t and t.strip()]
+    if not uppers:
+        return {}
+
+    placeholders = ",".join(["%s"] * len(uppers))
+    sql = f"""
+        WITH ordered AS (
+            SELECT
+                TICKER,
+                CLOSE_PRICE,
+                LAG(CLOSE_PRICE) OVER (
+                    PARTITION BY TICKER ORDER BY TRADE_DATE DESC
+                ) AS prev_close,
+                ROW_NUMBER() OVER (
+                    PARTITION BY TICKER ORDER BY TRADE_DATE DESC
+                ) AS rn
+            FROM PRICES
+            WHERE TICKER IN ({placeholders})
+        )
+        SELECT TICKER, CLOSE_PRICE, prev_close
+        FROM ordered
+        WHERE rn = 1
+    """
+
+    conn = get_snowflake_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(sql, tuple(uppers))
+        out: dict[str, tuple[float, float]] = {}
+        for row in cur.fetchall() or []:
+            t = str(row[0]).upper()
+            close = float(row[1] or 0)
+            prev_raw = row[2]
+            prev = float(prev_raw) if prev_raw is not None else close
+            if close > 0:
+                out[t] = (close, prev if prev > 0 else close)
+        return out
+    except Exception:
+        return {}
+    finally:
+        conn.close()

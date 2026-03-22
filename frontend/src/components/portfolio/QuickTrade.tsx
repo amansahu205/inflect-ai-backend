@@ -208,6 +208,8 @@ const QuickTrade = ({ onTradeComplete, quotes: liveQuotes }: Props) => {
           {(["buy", "sell"] as const).map((s) => (
             <button
               key={s}
+              type="button"
+              data-testid={`quicktrade-side-${s}`}
               onClick={() => setSide(s)}
               className="font-bold text-sm tracking-wider py-2 rounded-lg transition-all"
               style={{
@@ -227,6 +229,7 @@ const QuickTrade = ({ onTradeComplete, quotes: liveQuotes }: Props) => {
             <label className="uppercase text-xs tracking-wider block mb-1" style={{ color: "hsl(var(--muted-foreground))" }}>Ticker</label>
             <input
               type="text"
+              data-testid="quicktrade-ticker"
               value={ticker}
               onChange={(e) => {
                 const val = e.target.value.toUpperCase();
@@ -296,6 +299,7 @@ const QuickTrade = ({ onTradeComplete, quotes: liveQuotes }: Props) => {
             <label className="uppercase text-xs tracking-wider block mb-1" style={{ color: "hsl(var(--muted-foreground))" }}>Quantity</label>
             <input
               type="number"
+              data-testid="quicktrade-quantity"
               min={1}
               value={quantity}
               onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
@@ -307,6 +311,7 @@ const QuickTrade = ({ onTradeComplete, quotes: liveQuotes }: Props) => {
           <div>
             <label className="uppercase text-xs tracking-wider block mb-1" style={{ color: "hsl(var(--muted-foreground))" }}>Order Type</label>
             <select
+              data-testid="quicktrade-order-type"
               value={orderType}
               onChange={(e) => setOrderType(e.target.value)}
               className="w-full font-mono text-sm rounded-xl px-3 py-2.5 outline-none appearance-none"
@@ -342,6 +347,8 @@ const QuickTrade = ({ onTradeComplete, quotes: liveQuotes }: Props) => {
 
         {/* Place order button */}
         <button
+          type="button"
+          data-testid="quicktrade-place-order"
           onClick={handlePlaceOrder}
           className="w-full rounded-xl font-bold py-3 transition-all relative z-10"
           style={{
@@ -391,6 +398,8 @@ const QuickTrade = ({ onTradeComplete, quotes: liveQuotes }: Props) => {
 
             <div className="grid grid-cols-2 gap-2 mt-5">
               <button
+                type="button"
+                data-testid="quicktrade-cancel-confirm"
                 onClick={() => setShowConfirm(false)}
                 disabled={executing}
                 className="rounded-xl py-2.5 transition-colors"
@@ -399,6 +408,8 @@ const QuickTrade = ({ onTradeComplete, quotes: liveQuotes }: Props) => {
                 Cancel
               </button>
               <button
+                type="button"
+                data-testid="quicktrade-confirm-order"
                 onClick={handleConfirm}
                 disabled={executing}
                 className="rounded-xl py-2.5 font-bold transition-colors"

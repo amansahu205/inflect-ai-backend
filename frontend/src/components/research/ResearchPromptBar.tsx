@@ -39,6 +39,7 @@ const ResearchPromptBar = ({ onSubmit, onMicClick, voiceState, disabled }: Resea
       <input
         ref={inputRef}
         type="text"
+        data-testid="research-input"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSubmit(); } }}
@@ -52,6 +53,8 @@ const ResearchPromptBar = ({ onSubmit, onMicClick, voiceState, disabled }: Resea
 
       {/* Mic button */}
       <button
+        type="button"
+        data-testid="research-mic"
         onClick={onMicClick}
         disabled={isProcessing}
         className="shrink-0 flex items-center justify-center transition-all duration-200"
@@ -76,6 +79,8 @@ const ResearchPromptBar = ({ onSubmit, onMicClick, voiceState, disabled }: Resea
 
       {/* Send button */}
       <button
+        type="button"
+        data-testid="research-send"
         onClick={handleSubmit}
         disabled={!canSubmit}
         className="shrink-0 flex items-center justify-center transition-all duration-200"

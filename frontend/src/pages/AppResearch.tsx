@@ -223,6 +223,23 @@ const AppResearch = () => {
       };
     }
 
+    const looksLikeApiStub =
+      /placeholder|wire up your fastapi/i.test((result.answer || "").trim());
+    if (looksLikeApiStub) {
+      if (quote && result.intent_type === "price_check") {
+        result = {
+          ...result,
+          answer: `${quote.ticker} is at $${quote.price.toFixed(2)}, ${quote.direction} ${Math.abs(quote.change_percent).toFixed(2)}% vs prior close. Educational only. Not investment advice.`,
+        };
+      } else if (metric && metricTicker) {
+        const ch = metric.change ? ` ${metric.changeDirection === "down" ? "▼" : "▲"} ${metric.change}` : "";
+        result = {
+          ...result,
+          answer: `${metric.metric} for ${metricTicker} (${metric.period}): ${metric.value}.${ch} See source card for filing context. Educational only. Not investment advice.`,
+        };
+      }
+    }
+
     if (user) {
       const { error: logError } = await supabase.from("queries").insert({
         user_id: user.id,
@@ -396,9 +413,11 @@ const AppResearch = () => {
                 </p>
               </div>
               <div className="flex flex-col gap-2 w-full" style={{ maxWidth: 420 }}>
-                {EXAMPLE_QUERIES.map(q => (
+                {EXAMPLE_QUERIES.map((q, i) => (
                   <button
                     key={q}
+                    type="button"
+                    data-testid={`research-example-${i}`}
                     onClick={() => handleTextSubmit(q)}
                     className="text-left px-4 py-3 rounded-xl transition-all duration-200"
                     style={{

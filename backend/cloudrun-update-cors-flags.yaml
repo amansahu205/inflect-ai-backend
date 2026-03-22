@@ -1,0 +1,7 @@
+# One-off gcloud --flags-file for comma-containing CORS_ORIGINS on Windows shells.
+# Usage (from repo root):
+#   gcloud run services update inflect-backend --region=us-central1 --flags-file=backend/cloudrun-update-cors-flags.yaml
+--update-env-vars:
+  CORS_ORIGINS: "https://inflect-ai.lovable.app,https://www.inflectai.biz,https://inflectai.biz"
+  # Semicolon-separated regexes → combined in app (main._combined_cors_origin_regex)
+  CORS_ORIGIN_REGEX: "https://.*\\.lovableproject\\.com;https://.*\\.lovable\\.app"

@@ -74,6 +74,7 @@ const NavBar = () => {
             <Link
               key={link.to}
               to={link.to}
+              data-testid={`nav-${link.label.toLowerCase()}`}
               className="transition-colors duration-200"
               style={{
                 color: isActive ? "white" : "hsl(var(--muted-foreground))",

@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
 from app.agents.base_agent import BaseAgent
 from app.services.snowflake_rag_service import search_sec_chunks
+
+logger = logging.getLogger(__name__)
 
 
 class RetrievalAgent(BaseAgent):
@@ -15,7 +18,26 @@ class RetrievalAgent(BaseAgent):
         ticker = input.get("ticker")
         query = input["query"]
         limit = int(input.get("limit", 5))
-        chunks = await asyncio.to_thread(
-            search_sec_chunks, ticker, query, limit
-        )
-        return {"chunks": chunks}
+
+        try:
+            chunks = await asyncio.to_thread(
+                search_sec_chunks, ticker, query, limit
+            )
+            logger.debug(
+                "RetrievalAgent: fetched %d chunks for ticker=%s",
+                len(chunks),
+                ticker,
+            )
+            return {"chunks": chunks, "retrieval_failed": False, "error": None}
+
+        except Exception as e:
+            logger.error(
+                "RetrievalAgent: Snowflake query failed for ticker=%s: %s",
+                ticker,
+                e,
+            )
+            return {
+                "chunks": [],
+                "retrieval_failed": True,
+                "error": str(e),
+            }
