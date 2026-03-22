@@ -1,0 +1,174 @@
+import { useState, useRef } from "react";
+import { Link, useNavigate, useSearchParams, Navigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import MatrixCanvas from "@/components/auth/MatrixCanvas";
+import GlowInput from "@/components/auth/GlowInput";
+import "@/components/auth/GlowInput.css";
+import { useAuthStore } from "@/store/authStore";
+import logo from "@/assets/inflect-logo.png";
+
+const Login = () => {
+  const { session, loading } = useAuthStore();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect_to") || "/app/research";
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const attemptsRef = useRef(0);
+  const lockedUntilRef = useRef(0);
+
+  if (!loading && session) return <Navigate to="/app/research" replace />;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (Date.now() < lockedUntilRef.current) {
+      setError("Too many attempts. Try again later.");
+      return;
+    }
+    if (!email || !password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
+    setSubmitting(true);
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    setSubmitting(false);
+
+    if (authError) {
+      attemptsRef.current += 1;
+      if (attemptsRef.current >= 5) {
+        lockedUntilRef.current = Date.now() + 15 * 60 * 1000;
+        setError("Too many attempts. Try again later.");
+      } else if (authError.message?.toLowerCase().includes("network") || authError.status === 0) {
+        setError("Login failed. Check your connection.");
+      } else {
+        setError("Incorrect email or password.");
+      }
+      return;
+    }
+
+    navigate(redirectTo, { replace: true });
+  };
+
+  const hasError = !!error;
+
+  return (
+    <div className="min-h-screen relative overflow-hidden" style={{ background: "#080C14" }}>
+      <MatrixCanvas />
+      <div className="fixed inset-0 z-[5] pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 70% at 50% 50%, rgba(8,12,20,0.7) 0%, transparent 100%)" }} />
+
+      <div
+        className="absolute w-full z-[2]"
+        style={{ top: "50%", left: "50%", transform: "translate(-50%, -50%)", maxWidth: 420, padding: "0 16px" }}
+      >
+        <div className="flex justify-center mb-8">
+          <img src={logo} alt="Inflect" style={{ height: 40 }} className="object-contain" />
+        </div>
+
+        <div style={{ background: "#0F1820", border: "1px solid rgba(240,165,0,0.2)", borderRadius: 12, padding: 40, boxShadow: "0 0 0 1px rgba(240,165,0,0.2), 0 24px 80px rgba(0,0,0,0.6), 0 0 120px rgba(240,165,0,0.05)" }}>
+          <h1 className="font-display text-xl font-bold text-foreground text-center mb-8">Welcome back</h1>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label style={{ color: "#8892A4", fontSize: 12, letterSpacing: "0.05em" }} className="block mb-1.5">
+                Email
+              </label>
+              <GlowInput
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                hasError={hasError}
+                isValid={email.includes("@") && email.includes(".")}
+              />
+            </div>
+
+            <div>
+              <label style={{ color: "#8892A4", fontSize: 12, letterSpacing: "0.05em" }} className="block mb-1.5">
+                Password
+              </label>
+              <GlowInput
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                hasError={hasError}
+                isValid={password.length >= 8}
+              />
+            </div>
+
+            {error && <p style={{ color: "#E05555", fontSize: 12 }}>{error}</p>}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="glow-button w-full cursor-pointer transition-all duration-200"
+              style={{
+                background: "#F0A500",
+                color: "#080C14",
+                fontWeight: 700,
+                borderRadius: 8,
+                padding: 12,
+                fontSize: 15,
+                opacity: submitting ? 0.7 : 1,
+                border: "none",
+              }}
+            >
+              {submitting ? "Logging in…" : "Log In"}
+            </button>
+          </form>
+
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px" style={{ background: "#1E2D40" }} />
+            <span style={{ color: "#8892A4", fontSize: 11 }}>or</span>
+            <div className="flex-1 h-px" style={{ background: "#1E2D40" }} />
+          </div>
+
+          <button
+            type="button"
+            disabled={submitting}
+            onClick={async () => {
+              setError("");
+              setSubmitting(true);
+              const { error: authError } = await supabase.auth.signInWithPassword({
+                email: "demo@inflect.app",
+                password: "Demo1234",
+              });
+              setSubmitting(false);
+              if (authError) {
+                setError("Demo login failed. Try again.");
+                return;
+              }
+              navigate(redirectTo, { replace: true });
+            }}
+            className="glow-button w-full cursor-pointer transition-all duration-200"
+            style={{
+              background: "transparent",
+              border: "1px solid #1E2D40",
+              color: "#8892A4",
+              fontWeight: 600,
+              borderRadius: 8,
+              padding: 12,
+              fontSize: 14,
+            }}
+          >
+            Try Demo Account
+          </button>
+
+          <p className="text-center text-sm mt-6" style={{ color: "#8892A4" }}>
+            Don't have an account?{" "}
+            <Link to="/register" className="font-medium" style={{ color: "#F0A500" }}>Sign up →</Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Login;

@@ -27,6 +27,9 @@ htmlcov/
 venv/
 env/
 
+# Frontend app (e.g. separate Lovable repo — not tracked in this root)
+frontend/
+
 # Node / frontend
 node_modules/
 dist/
@@ -54,4 +57,3 @@ backend/data/
 # Local model files
 models/
 backend/models/
-frontend/.cache/
