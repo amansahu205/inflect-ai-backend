@@ -30,7 +30,18 @@ The name comes from the concept of an *inflection point* — the moment a trend 
 
 ## What it does
 
-Inflect is a **research + markets** workspace that combines:
+Inflect is an AI-powered financial research platform that synthesizes SEC filings, real-time market data, technical indicators, and news sentiment into instant, cited answers.
+
+Ask anything about a Fortune 500 company — fundamentals, technicals, earnings, price action — and Inflect returns a grounded answer with source citations pulled directly from SEC EDGAR filings, along with auto-generated interactive charts and a structured *Trade Thesis Card* showing:
+
+- 📊 *Fundamental signal* — from 10-K/10-Q/8-K RAG retrieval
+- 📈 *Technical signal* — RSI, MACD, Bollinger Bands via TA-Lib
+- 📰 *Sentiment signal* — FinBERT scoring across recent headlines
+- ⚖️ *Verdict* — HOLD / WATCH / AVOID (never BUY/SELL — we're educators, not advisors)
+
+Users can also execute *paper trades* with $100K in simulated capital, upload chart screenshots for AI-powered vision analysis, and switch seamlessly between a voice interface and a Perplexity-style chat interface depending on their workflow.
+
+Every single answer is citation-grounded. A Validator Agent blocks any response that cannot be traced back to a retrieved source document — *zero hallucination tolerance*.
 
 - **Ask anything** — fundamentals, price checks, filings-aware Q&A via a multi-step backend pipeline (intent → retrieval → answer → validation).
 - **Citations** — SEC filing excerpts from **Snowflake** when retrieval matches; answers are run through a **Validator** pass to flag weak grounding and missing disclaimers.
