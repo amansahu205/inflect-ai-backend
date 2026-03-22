@@ -19,9 +19,12 @@
 
 ## Inspiration
 
-Pro terminals are expensive; lightweight chart apps assume you already speak “RSI” and “MACD.” We built **Inflect** so finance students and retail investors can ask plain-English questions and get **grounded**, **cited** answers—not another black box.
+Bloomberg Terminal costs $24,000 a year. TradingView assumes you already know what RSI means. ThinkorSwim was built for professionals, not students learning to trade.
 
-The name nods to an **inflection point**: the moment a trend bends. We want to help people notice those moments earlier—with context, not hype.
+We built Inflect because financial research shouldn't require a finance degree or a six-figure budget. Every retail investor and finance student deserves the same depth of insight that institutional traders take for granted — delivered instantly, cited accurately, and explained clearly.
+
+The name comes from the concept of an *inflection point* — the moment a trend changes direction. That's exactly what we're trying to help users find, before everyone else does.
+
 
 ---
 
