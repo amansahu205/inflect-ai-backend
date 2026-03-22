@@ -3,13 +3,25 @@
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com/)
 [![Pipeline](https://img.shields.io/badge/Pipeline-Multi--agent-green)]()
+[![Google Cloud](https://img.shields.io/badge/Google%20Cloud-Run-4285F4?logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
+[![Docker](https://img.shields.io/badge/Docker-container-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Snowflake](https://img.shields.io/badge/Snowflake-warehouse-29B5E8?logo=snowflake&logoColor=white)](https://www.snowflake.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20DB-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+
+[![Groq](https://img.shields.io/badge/Groq-LLM-F55000)](https://groq.com/)
+[![Gemini](https://img.shields.io/badge/Google-Gemini-4285F4?logo=google&logoColor=white)](https://ai.google.dev/)
+[![Finnhub](https://img.shields.io/badge/Finnhub-Market%20data-22C55E)](https://finnhub.io/)
+[![ElevenLabs](https://img.shields.io/badge/ElevenLabs-Voice-000000)](https://elevenlabs.io/)
+[![Wolfram](https://img.shields.io/badge/Wolfram%7CAlpha-enrichment-DD1100)](https://www.wolframalpha.com/)
+
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Docker](https://img.shields.io/badge/docker-Cloud%20Run-2496ED?logo=docker&logoColor=white)](https://cloud.google.com/run)
-[![Snowflake](https://img.shields.io/badge/Snowflake-warehouse-29B5E8?logo=snowflake&logoColor=white)](https://www.snowflake.com/)
-[![Groq](https://img.shields.io/badge/Groq-LLM-F55000)](https://groq.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-auth-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![TanStack Query](https://img.shields.io/badge/TanStack-Query-FF4154?logo=reactquery&logoColor=white)](https://tanstack.com/query)
+[![Plotly](https://img.shields.io/badge/Plotly.js-Charts-3F4F75?logo=plotly&logoColor=white)](https://plotly.com/javascript/)
+[![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-unit-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
 
 **Inflect** — AI-assisted market research and portfolio UI for **HooHacks 2026**.
 
