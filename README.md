@@ -23,7 +23,7 @@
 [![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
 [![Vitest](https://img.shields.io/badge/Vitest-unit-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
 
-**Inflect** — AI-assisted market research and portfolio UI for **HooHacks 2026**.
+**Inflect** — Market intelligence that thinks faster than the market moves. Research any Fortune 500 company in seconds — speak it, type it, trade it.
 
 > **Disclaimer:** Educational demo only. Not investment advice. We never output BUY/SELL or price targets.
 
