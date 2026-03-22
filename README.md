@@ -47,7 +47,7 @@ Inflect is an AI-powered financial research platform that synthesizes SEC filing
 Ask anything about a Fortune 500 company — fundamentals, technicals, earnings, price action — and Inflect returns a grounded answer with source citations pulled directly from SEC EDGAR filings, along with auto-generated interactive charts and a structured *Trade Thesis Card* showing:
 
 - 📊 *Fundamental signal* — from 10-K/10-Q/8-K RAG retrieval
-- 📈 *Technical signal* — RSI, MACD, Bollinger Bands via TA-Lib
+- 📈 *Technical signal* — RSI, MACD, Bollinger Bands via **Wolfram|Alpha** and TA-Lib
 - 📰 *Sentiment signal* — FinBERT scoring across recent headlines
 - ⚖️ *Verdict* — HOLD / WATCH / AVOID (never BUY/SELL — we're educators, not advisors)
 
