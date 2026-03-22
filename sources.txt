@@ -1,0 +1,40 @@
+# Inflect — AI-Powered Financial Research Platform
+
+DATA SOURCES:
+- SEC EDGAR API: https://data.sec.gov
+  Used for: 10-K, 10-Q, 8-K filings
+  License: Public domain (US Government)
+
+- yfinance: https://github.com/ranaroussi/yfinance
+  Used for: Stock prices, fundamentals
+  License: Apache 2.0
+
+- Finnhub API: https://finnhub.io
+  Used for: News, metrics, recommendations
+  License: Finnhub Free Tier
+
+- Wikipedia S&P 500 list:
+  https://en.wikipedia.org/wiki/List_of_S%26P_500_companies
+  Used for: Company list with CIK numbers
+
+AI MODELS:
+- Groq LLaMA 3.3 70B: https://groq.com
+- Groq Whisper Large v3: https://groq.com
+- BGE-M3: https://huggingface.co/BAAI/bge-m3
+- ElevenLabs TTS: https://elevenlabs.io
+- Google Gemini 1.5 Flash: https://ai.google.dev
+- Anthropic Claude: https://anthropic.com
+
+FRAMEWORKS:
+- FastAPI: https://fastapi.tiangolo.com
+- React: https://react.dev
+- Tailwind CSS: https://tailwindcss.com
+- Pinecone: https://pinecone.io
+- Supabase: https://supabase.com
+- Snowflake: https://snowflake.com
+
+TOOLS:
+- Lovable: https://lovable.dev (UI generation)
+- Wolfram Alpha: https://wolframalpha.com
+- Vercel: https://vercel.com
+- Google Cloud Run: https://cloud.google.com/run
