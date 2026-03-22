@@ -13,7 +13,7 @@ import re
 from typing import Any
 
 
-def _connect():
+def get_snowflake_connection():
     import snowflake.connector
 
     return snowflake.connector.connect(
@@ -32,6 +32,144 @@ def snowflake_configured() -> bool:
         and os.getenv("SNOWFLAKE_USER")
         and os.getenv("SNOWFLAKE_PASSWORD")
     )
+
+
+def _row_fundamentals(row: tuple) -> dict[str, Any]:
+    """Map FUNDAMENTALS row to named fields (column order in SELECT)."""
+    return {
+        "ticker": row[0],
+        "pe_ratio": row[1],
+        "forward_pe": row[2],
+        "eps": row[3],
+        "revenue": row[4],
+        "gross_margin": row[5],
+        "profit_margin": row[6],
+        "debt_equity": row[7],
+        "market_cap": row[8],
+        "beta": row[9],
+        "roe": row[10],
+        "fcf": row[11],
+        "div_yield": row[12],
+        "updated_at": row[13],
+    }
+
+
+def get_fundamentals(ticker: str) -> dict[str, Any]:
+    """
+    One row from FUNDAMENTALS for ticker.
+    Column order: TICKER, PE_RATIO, FORWARD_PE, EPS, REVENUE, GROSS_MARGIN,
+    PROFIT_MARGIN, DEBT_EQUITY, MARKET_CAP, BETA, ROE, FCF, DIV_YIELD, UPDATED_AT.
+    """
+    if not snowflake_configured():
+        return {}
+    conn = get_snowflake_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT TICKER, PE_RATIO, FORWARD_PE, EPS, REVENUE, GROSS_MARGIN,
+                   PROFIT_MARGIN, DEBT_EQUITY, MARKET_CAP, BETA, ROE, FCF,
+                   DIV_YIELD, UPDATED_AT
+            FROM FUNDAMENTALS
+            WHERE TICKER = %s
+            """,
+            (ticker.upper(),),
+        )
+        row = cur.fetchone()
+        if not row:
+            return {}
+        return _row_fundamentals(row)
+    except Exception:
+        return {}
+    finally:
+        conn.close()
+
+
+def _row_news(row: tuple) -> dict[str, Any]:
+    """Map one NEWS row (HEADLINE, SENTIMENT, SUMMARY) to a dict."""
+    return {
+        "headline": row[0],
+        "sentiment": row[1],
+        "summary": row[2],
+    }
+
+
+def get_news(ticker: str) -> tuple[list[dict[str, Any]], list[str]]:
+    """
+    Up to 5 recent news rows (newest first), plus a list of headline strings
+    for sentiment scoring (headline, or headline | summary when summary exists).
+    """
+    if not snowflake_configured():
+        return [], []
+    conn = get_snowflake_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT HEADLINE, SENTIMENT, SUMMARY
+            FROM NEWS
+            WHERE TICKER = %s
+            ORDER BY PUBLISHED_AT DESC
+            LIMIT 5
+            """,
+            (ticker.upper(),),
+        )
+        raw = cur.fetchall() or []
+        rows = [_row_news(r) for r in raw]
+        headlines: list[str] = []
+        for d in rows:
+            h = (d.get("headline") or "").strip()
+            s = (d.get("summary") or "").strip()
+            if h and s:
+                headlines.append(f"{h} | {s}")
+            elif h:
+                headlines.append(h)
+            elif s:
+                headlines.append(s)
+        return rows, headlines
+    except Exception:
+        return [], []
+    finally:
+        conn.close()
+
+
+def _row_metrics(row: tuple) -> dict[str, Any]:
+    """Map METRICS row to named fields (matches upload_market_data MERGE column order)."""
+    return {
+        "ticker": row[0],
+        "high_52w": row[1],
+        "low_52w": row[2],
+        "beta": row[3],
+        "revenue_growth": row[4],
+    }
+
+
+def get_metrics(ticker: str) -> dict[str, Any]:
+    """
+    One row from METRICS for ticker.
+    Column order: TICKER, HIGH_52W, LOW_52W, BETA, REVENUE_GROWTH.
+    """
+    if not snowflake_configured():
+        return {}
+    conn = get_snowflake_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT TICKER, HIGH_52W, LOW_52W, BETA, REVENUE_GROWTH
+            FROM METRICS
+            WHERE TICKER = %s
+            """,
+            (ticker.upper(),),
+        )
+        row = cur.fetchone()
+        if not row:
+            return {}
+        return _row_metrics(row)
+    except Exception:
+        return {}
+    finally:
+        conn.close()
 
 
 def _query_keywords(text: str, max_terms: int = 8) -> list[str]:
@@ -67,7 +205,7 @@ def search_sec_chunks(
     if not terms:
         terms = [user_query.strip()[:40] or "revenue"]
 
-    conn = _connect()
+    conn = get_snowflake_connection()
     try:
         cur = conn.cursor()
         ilike_clauses = " OR ".join(["CHUNK_TEXT ILIKE %s"] * len(terms))

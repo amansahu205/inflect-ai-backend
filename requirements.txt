@@ -1,16 +1,17 @@
-
----
-
-## FILE 8 — `requirements.txt`
-```
 fastapi==0.115.0
 uvicorn[standard]==0.30.0
-groq==0.9.0
-yfinance==1.2.0
-pandas==2.3.2
+groq>=0.30.0
+yfinance==0.2.54
+pandas>=2.0.0
 httpx==0.27.0
 python-dotenv==1.0.1
 finnhub-python==2.4.20
 pinecone-client==6.0.0
 python-multipart==0.0.9
 pydantic==2.7.0
+snowflake-connector-python==3.6.0
+google-generativeai==0.7.0
+sentence-transformers==3.0.0
+torch==2.3.0
+ta==0.11.0
+requests==2.31.0
