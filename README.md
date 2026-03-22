@@ -180,7 +180,10 @@ See `backend/cloudrun-update-cors-flags.yaml` for example env flags.
 ## API (selected)
 
 - `POST /api/v1/query/analyze`
-- `GET /api/v1/market/tickers`, `/quote`, `/history`, `/metric`
+- `GET /api/v1/market/tickers`
+- `GET /api/v1/market/tickers/quote`
+- `GET /api/v1/market/tickers/history`
+- `GET /api/v1/market/tickers/metric`
 - `POST /api/v1/voice/transcribe`
 - `POST /api/v1/thesis/generate`
 
