@@ -47,7 +47,7 @@ Inflect is a **research + markets** workspace that combines:
 | **Backend** | **FastAPI** + Uvicorn, modular agents (retrieval, citation, answer, validator, thesis, chart, trade). |
 | **Deploy** | Backend container on **Google Cloud Run** (`backend/Dockerfile`); frontend on static hosts / **Lovable** / custom domain with strict **CORS** (exact origins + regex for previews). |
 | **Data** | **Snowflake** — `PRICES`, fundamentals, metrics, SEC text chunks for keyword / ILIKE RAG (vector search path documented for future BGE-scale embeddings). |
-| **LLM** | **Groq** (e.g. LLaMA 3.1 8B intent, LLaMA 3.3 70B answers); optional **Gemini** / **Wolfram** hooks in the pipeline. |
+| **LLM** | **Groq** (e.g. LLaMA 3.1 8B intent, LLaMA 3.3 70B answers); **Gemini** / **Wolfram** hooks in the pipeline. |
 | **Voice** | **ElevenLabs** Scribe; **Groq** Whisper when `STT_GROQ_FALLBACK` is enabled. |
 | **Auth & app DB** | **Supabase** Auth + Postgres for user state, query log, and paper portfolio. |
 
